@@ -1,0 +1,28 @@
+# Build output
+build/
+build-*/
+cmake-build-*/
+_deps/
+CMakeCache.txt
+CMakeFiles/
+
+# compile DB (we symlink it to build/; the target is ignored anyway)
+compile_commands.json
+
+# clangd / editor caches
+.cache/
+.clangd/
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Stray compiler output (e.g. a manual `g++` in sandbox/)
+*.o
+*.obj
+a.out
+sandbox/rung[0-9]
+
+# Some content
+**/sources/

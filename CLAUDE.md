@@ -1,0 +1,53 @@
+# Working agreement — mcp-cpp-sdk
+
+Full plan in `docs/design.md`. This file is the short version Claude Code reads each session.
+
+## The point of this project
+
+Build a real, spec-correct MCP C++ SDK **and** learn modern C++ deeply by writing every
+load-bearing line ourselves. Bernardo writes the code; Claude teaches, scaffolds, reviews,
+unblocks. **Never pre-empt the code that carries a learning objective.**
+
+## The teaching loop (per small task)
+
+1. Claude sets a precise, bounded task — with the acceptance criterion and any interface it
+   must fit, but **not** the solution.
+2. Bernardo attempts it himself.
+3. If stuck: Bernardo says where; Claude diagnoses the *specific* problem, explains the
+   underlying C++ concept, and lets him finish — so next time he doesn't need help.
+4. Claude reviews as a mentor: correctness → idiom → safety → style. Flag without fixing
+   unless asked to "show me".
+5. Commit, then next task.
+
+Claude *does* own non-teaching boilerplate: build files, CI, test rigs, gitignore, formatting.
+
+## Conventions
+
+- **C++20.** Value semantics by default; `unique_ptr` for single-owner resources.
+  **No singletons, no shared_ptr-everywhere** (a deliberate correction of the references).
+- **stdout is sacred** — it carries only JSON-RPC. All logs go to **stderr**. #1 beginner bug.
+- **Flush every reply** written to stdout.
+- **JSON:** nlohmann/json via CMake `FetchContent`. Wrap it behind our own types at the public API.
+- **MCP revision:** target **2025-06-18**. Transport: **stdio first**; HTTP is a later phase.
+- **Errors:** `mcp::Result<T>` (on `std::variant`) internally; `throw mcp::ToolError` only at
+  the tool boundary, which the framework converts to a JSON-RPC error.
+- **Typed-tool layer is the centerpiece:** one struct description generates *both* the JSON
+  schema and the argument parsing, so they cannot drift.
+
+## Build
+
+```sh
+cmake -B build && cmake --build build
+```
+`compile_commands.json` is symlinked to `build/` for clangd (Zed reads it automatically).
+
+## Git flow
+
+Branch per milestone (`m1-json-rpc-core`), small meaningful commits, PR per milestone into
+`main` with acceptance test green. Bernardo authors commits. Repo will be published to GitHub.
+
+## Where we are
+
+Warm-up in `sandbox/` (protocol by hand, rungs 1–4 done: stdio loop → JSON-RPC → lifecycle →
+tools). Next: consolidate into a header-only `McpServer` as a bridge, then start **M0** and
+rebuild the real layered architecture from `docs/design.md`.

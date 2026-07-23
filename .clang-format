@@ -1,0 +1,8 @@
+# Matches the style we've been writing: 2-space indent, refs on the type.
+# Base on LLVM and tweak a few things rather than hand-listing 100 options.
+BasedOnStyle: LLVM
+Standard: c++20
+IndentWidth: 2
+ColumnLimit: 90
+PointerAlignment: Left
+DerivePointerAlignment: false
