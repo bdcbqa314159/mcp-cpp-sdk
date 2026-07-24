@@ -49,6 +49,18 @@ Add the built binary to Claude Desktop's config
 The tool then appears to Claude. Remember: **stdout is the protocol channel** — all logging
 goes to stderr, or you corrupt the stream.
 
+## Tests
+
+```sh
+cmake -B build && cmake --build build
+cd build && ctest --output-on-failure
+```
+
+GoogleTest is pulled automatically via CMake `FetchContent`. **Offline?** Download the
+GoogleTest repo by hand and drop it at `third_party/googletest/` — CMake prefers a
+vendored copy there over the network fetch, so the build works with no internet.
+Disable tests entirely with `-DMCP_BUILD_TESTS=OFF`.
+
 ## Layout
 
 | Path | What |
