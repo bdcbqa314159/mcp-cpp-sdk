@@ -30,3 +30,25 @@ foreach(src ${SANDBOX_SRCS})
   add_executable(${name} ${src})
   target_link_libraries(${name} PRIVATE nlohmann_json::nlohmann_json)
 endforeach()
+
+# ---- Tests (GoogleTest) -----------------------------------------------------
+option(MCP_BUILD_TESTS "Build unit tests with GoogleTest" ON)
+if(MCP_BUILD_TESTS)
+  # Two ways to get GoogleTest, in priority order:
+  #   1. Vendored copy at third_party/googletest/ — works fully OFFLINE. Anyone
+  #      who can only download the repo by hand drops it there (see README).
+  #   2. Otherwise FetchContent pulls the release tarball over the network.
+  if(EXISTS ${CMAKE_SOURCE_DIR}/third_party/googletest/CMakeLists.txt)
+    message(STATUS "GoogleTest: using vendored copy in third_party/googletest")
+    add_subdirectory(third_party/googletest EXCLUDE_FROM_ALL)
+  else()
+    message(STATUS "GoogleTest: fetching via FetchContent")
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)  # avoid CRT mismatch on Windows
+    FetchContent_Declare(googletest
+      URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz)
+    FetchContent_MakeAvailable(googletest)
+  endif()
+
+  enable_testing()
+  add_subdirectory(tests)
+endif()
