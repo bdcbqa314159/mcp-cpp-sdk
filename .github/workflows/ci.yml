@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-latest,   name: "macOS / Apple Clang" }
+          - { os: ubuntu-latest,  name: "Linux / GCC" }
+          - { os: windows-latest, name: "Windows / MSVC" }
+    steps:
+      - uses: actions/checkout@v4
+
+      # Default generator per OS (Makefiles/Xcode on *nix, Visual Studio on Windows).
+      # --config Release is honored by multi-config (MSVC) and ignored by single-config.
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
+
+      - name: Test
+        run: ctest --test-dir build --build-config Release --output-on-failure
