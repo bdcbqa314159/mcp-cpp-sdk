@@ -5,6 +5,14 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)  # emit build/compile_commands.json for clangd
 
+# Optional sanitizers (the `asan` preset turns this on). Clang/GCC only — MSVC has
+# a different flag spelling, so we skip it there rather than break the Windows build.
+option(MCP_SANITIZE "Enable Address + UB sanitizers (Clang/GCC)" OFF)
+if(MCP_SANITIZE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address,undefined)
+endif()
+
 # Pull nlohmann/json as a header-only dep. URL of the prebuilt release tarball,
 # not a git clone — the repo is huge, the tarball is tiny.
 include(FetchContent)
