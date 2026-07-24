@@ -18,6 +18,12 @@ compile_commands.json
 # macOS
 .DS_Store
 
+# External reference projects (studied, not part of our SDK)
+sources/
+
+# Vendored GoogleTest (offline fallback) — not committed
+third_party/
+
 # Stray compiler output (e.g. a manual `g++` in sandbox/)
 *.o
 *.obj
