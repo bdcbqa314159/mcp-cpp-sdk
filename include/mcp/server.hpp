@@ -1,4 +1,5 @@
 #pragma once
+#include <exception>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -52,6 +53,7 @@ public:
         reply["id"] = nullptr;
         reply["error"] = {{"code", -32700}, {"message", "Parse error"}};
         std::cout << reply.dump() << "\n" << std::flush;
+
       } catch (...) {
         std::cerr << "Unknown error\n";
       }
@@ -97,17 +99,27 @@ private:
     }
 
     else if (method == "tools/call") {
-      std::string name = req["params"]["name"];
+      std::string name = req.at("params").at("name");
 
       auto it = tools_.find(name);
 
       if (it != tools_.end()) {
 
-        json block;
-        block["type"] = "text";
-        block["text"] = it->second.handler(req["params"]["arguments"]);
-        reply["result"]["content"] = {block};
+        try {
 
+          json block;
+          block["type"] = "text";
+          block["text"] = it->second.handler(req.at("params").at("arguments"));
+          reply["result"]["content"] = {block};
+
+        } catch (std::exception& e) {
+
+          json block;
+          block["type"] = "text";
+          block["text"] = std::string("tool error: ") + e.what();
+          reply["result"]["content"] = {block};
+          reply["result"]["isError"] = true;
+        }
       }
 
       else {
