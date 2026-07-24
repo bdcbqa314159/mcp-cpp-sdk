@@ -22,6 +22,9 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
   `.gitignore`.
 - **Tests** — GoogleTest via `FetchContent` with an offline vendored fallback
   (`third_party/googletest/`); smoke tests run under `ctest`.
+- **CMake presets** — `debug` / `release` / `asan` (Ninja); the `asan` preset turns on
+  Address + UB sanitizers via the `MCP_SANITIZE` option.
+- **CI** — GitHub Actions matrix: macOS/Apple Clang, Linux/GCC, Windows/MSVC (build + test).
 
 ### Notes
 - This is the warm-up phase. Next: rebuild in clean layers following the milestone

@@ -14,10 +14,23 @@ errors, `tools/list`, `tools/call`.
 
 ## Build
 
+With CMake presets (recommended — needs CMake ≥3.25 and Ninja):
+
 ```sh
-cmake -B build          # configures + fetches nlohmann/json via FetchContent
-cmake --build build
+cmake --preset debug        # or: release | asan   (fetches deps via FetchContent)
+cmake --build build/debug
+ctest --preset debug
 ```
+
+Or plain CMake (what CI uses, any generator):
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release
+```
+
+The `asan` preset builds with Address + UB sanitizers (Clang/GCC) — use it while
+developing to catch lifetime/UB bugs early.
 
 ## Run the example server
 

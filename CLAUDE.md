@@ -37,9 +37,20 @@ Claude *does* own non-teaching boilerplate: build files, CI, test rigs, gitignor
 ## Build
 
 ```sh
-cmake -B build && cmake --build build
+cmake --preset debug   # or release | asan
+cmake --build build/debug
+ctest --preset debug
 ```
-`compile_commands.json` is symlinked to `build/` for clangd (Zed reads it automatically).
+`compile_commands.json` is symlinked to `build/debug/` for clangd (Zed reads it automatically).
+
+## Settled decisions
+
+- **Toolchain: cross-platform.** macOS → Apple Clang, Linux → latest GCC, Windows → MSVC.
+  Code stays portable C++20; CI is a matrix over all three (`.github/workflows/ci.yml`).
+- **External test harness: C++** (not Python) — `tools/mcp_probe`, built at M1.
+- **Tests: GoogleTest** via FetchContent, offline fallback at `third_party/googletest/`.
+- **Presets:** `debug` / `release` / `asan` (Ninja). The `asan` preset enables
+  Address+UB sanitizers on Clang/GCC via the `MCP_SANITIZE` CMake option.
 
 ## Git flow
 
