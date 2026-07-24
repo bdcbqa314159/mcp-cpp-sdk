@@ -10,10 +10,20 @@ int main() {
       R"({"type":"object",
           "properties":{"a":{"type":"number"},"b":{"type":"number"}},
           "required":["a","b"]})"_json,
-      [](const mcp::json& args) -> std::string {          // <- the only logic you write
-        int sum = args["a"].get<int>() + args["b"].get<int>();
+      [](const mcp::json& args) -> std::string { // <- the only logic you write
+        int sum = args.at("a").get<int>() + args.at("b").get<int>();
         return std::to_string(sum);
       });
 
-  server.run();   // blocks: stdio loop + JSON-RPC + lifecycle, until stdin closes
+  // A second tool — same schema, different logic. No server.hpp changes needed.
+  server.add_tool(
+      "multiply", "Multiply two numbers",
+      R"({"type":"object",
+          "properties":{"a":{"type":"number"},"b":{"type":"number"}},
+          "required":["a","b"]})"_json,
+      [](const mcp::json& args) -> std::string {
+        return std::to_string(args.at("a").get<int>() * args.at("b").get<int>());
+      });
+
+  server.run(); // blocks: stdio loop + JSON-RPC + lifecycle, until stdin closes
 }
