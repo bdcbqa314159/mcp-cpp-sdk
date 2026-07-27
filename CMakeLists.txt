@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.14)  # FetchContent_MakeAvailable needs 3.14+
+cmake_minimum_required(VERSION 3.24)  # 3.24+ makes CMP0135 default NEW: correct
+                                      # timestamps on FetchContent URL downloads
 project(mcp_cpp_sdk CXX)
 
 set(CMAKE_CXX_STANDARD 20)
