@@ -11,7 +11,7 @@ namespace {
 template <typename... Ts> struct overloads : Ts... {
   using Ts::operator()...;
 };
-}  // namespace
+} // namespace
 
 void to_json(json& j, const Id& id) {
   const auto visitor =
@@ -31,4 +31,32 @@ void from_json(const json& j, Id& id) {
     throw std::runtime_error("JSON-RPC id must be int, string, or null");
 }
 
-}  // namespace mcp
+// TODO (task 2): serialize a Request.
+//   Always write: "jsonrpc" = "2.0" and "method" = r.method.
+//   params and id are std::optional — only write them to `j` when they hold a
+//   value. Test an optional with `if (opt)`; read the value with `*opt`.
+//   Writing `*r.id` reuses the Id to_json you already wrote.
+void to_json(json& j, const Request& r) {
+  j["jsonrpc"] = "2.0";
+  j["method"] = r.method;
+
+  if (r.params)
+    j["params"] = *r.params;
+  if (r.id)
+    j["id"] = *r.id;
+}
+
+// TODO (task 2): parse a Request.
+//   method is REQUIRED  -> read it with j.at("method") (throws if missing).
+//   params / id are OPTIONAL -> if the key is present set the optional, else
+//   leave it as std::nullopt. Test presence with j.contains("key").
+//   Reading the id: j.at("id").get<Id>() reuses the Id from_json.
+void from_json(const json& j, Request& r) {
+  r.method = j.at("method");
+  if (j.contains("params"))
+    r.params = j.at("params");
+  if (j.contains("id"))
+    r.id = j.at("id").get<Id>();
+}
+
+} // namespace mcp

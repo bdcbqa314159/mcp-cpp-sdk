@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <string>
 #include <variant>
 
@@ -24,5 +25,21 @@ struct Id {
 // Declared here, defined in src/json_rpc.cpp.
 void to_json(json& j, const Id& id);
 void from_json(const json& j, Id& id);
+
+// A JSON-RPC request: a method call. Two fields may be ABSENT, so they're
+// std::optional (a value-or-nothing box):
+//   - params: many methods take no arguments.
+//   - id:     an absent id means this is a *notification* — no reply is expected.
+//             (This is the notification rule you hand-coded back in the rungs,
+//              now expressed in the type itself.)
+struct Request {
+  std::string method;
+  std::optional<json> params;
+  std::optional<Id> id;
+  bool operator==(const Request&) const = default;
+};
+
+void to_json(json& j, const Request& r);
+void from_json(const json& j, Request& r);
 
 } // namespace mcp
