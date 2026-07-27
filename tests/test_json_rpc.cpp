@@ -78,3 +78,42 @@ TEST(Request, RejectsWrongVersion) {
   Request r;
   EXPECT_ANY_THROW(r = j.get<Request>());
 }
+
+using mcp::Error;
+using mcp::Response;
+
+TEST(Error, RoundTrip) {
+  Error e{-32601, "Method not found", std::nullopt};
+  json j = e;
+  EXPECT_EQ(j.at("code"), -32601);
+  EXPECT_EQ(j.at("message"), "Method not found");
+  EXPECT_FALSE(j.contains("data"));       // optional data absent
+  EXPECT_EQ(j.get<Error>(), e);
+}
+
+TEST(Response, SuccessCarriesResult) {
+  Response r;
+  r.id = Id{std::int64_t{1}};
+  r.payload = json{{"ok", true}};         // the json alternative == a result
+  json j = r;
+  EXPECT_EQ(j.at("jsonrpc"), "2.0");
+  EXPECT_TRUE(j.contains("result"));
+  EXPECT_FALSE(j.contains("error"));      // never both
+  EXPECT_EQ(j.get<Response>(), r);
+}
+
+TEST(Response, FailureCarriesError) {
+  Response r;
+  r.id = Id{std::int64_t{2}};
+  r.payload = Error{-32601, "Method not found", std::nullopt};
+  json j = r;
+  EXPECT_TRUE(j.contains("error"));
+  EXPECT_FALSE(j.contains("result"));
+  EXPECT_EQ(j.get<Response>(), r);
+}
+
+TEST(Response, RequiresResultOrError) {
+  json j = {{"jsonrpc", "2.0"}, {"id", 1}};  // neither result nor error
+  Response r;
+  EXPECT_ANY_THROW(r = j.get<Response>());
+}

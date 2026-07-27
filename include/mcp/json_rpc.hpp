@@ -42,4 +42,30 @@ struct Request {
 void to_json(json& j, const Request& r);
 void from_json(const json& j, Request& r);
 
+// A JSON-RPC error object: a numeric code, a human message, and optional extra
+// data. (Codes: -32700 parse error, -32601 method not found, etc.)
+struct Error {
+  int code;
+  std::string message;
+  std::optional<json> data;
+  bool operator==(const Error&) const = default;
+};
+
+void to_json(json& j, const Error& e);
+void from_json(const json& j, Error& e);
+
+// A JSON-RPC response: an id, plus EITHER a result OR an error — never both.
+// The std::variant enforces that at the type level: `payload` is exactly one of
+//   - json   : the success result value
+//   - Error  : the failure
+// You can't represent "both" or "neither", which two optionals would allow.
+struct Response {
+  Id id;
+  std::variant<json, Error> payload;
+  bool operator==(const Response&) const = default;
+};
+
+void to_json(json& j, const Response& r);
+void from_json(const json& j, Response& r);
+
 } // namespace mcp
