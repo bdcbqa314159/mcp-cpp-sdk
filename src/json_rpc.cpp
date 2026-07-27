@@ -52,6 +52,10 @@ void to_json(json& j, const Request& r) {
 //   leave it as std::nullopt. Test presence with j.contains("key").
 //   Reading the id: j.at("id").get<Id>() reuses the Id from_json.
 void from_json(const json& j, Request& r) {
+  if (j.at("jsonrpc") != "2.0") {
+    throw std::runtime_error{"unsupported version"};
+  }
+
   r.method = j.at("method");
   if (j.contains("params"))
     r.params = j.at("params");

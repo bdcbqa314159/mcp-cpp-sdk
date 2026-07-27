@@ -72,3 +72,9 @@ TEST(Request, RequiresMethod) {
   Request r;
   EXPECT_ANY_THROW(r = j.get<Request>());
 }
+
+TEST(Request, RejectsWrongVersion) {
+  json j = {{"jsonrpc", "1.0"}, {"method", "x"}};  // wrong protocol version
+  Request r;
+  EXPECT_ANY_THROW(r = j.get<Request>());
+}
