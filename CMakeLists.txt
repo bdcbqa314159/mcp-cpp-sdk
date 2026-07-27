@@ -19,7 +19,7 @@ FetchContent_Declare(nlohmann_json
   URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann_json)
 
-add_library(mcp STATIC src/json_rpc.cpp)
+add_library(mcp STATIC src/json_rpc.cpp src/result.cpp)
 target_include_directories(mcp PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(mcp PUBLIC nlohmann_json::nlohmann_json)
 
@@ -37,14 +37,11 @@ endforeach()
 # ---- Tests (GoogleTest via FetchContent) ------------------------------------
 option(MCP_BUILD_TESTS "Build unit tests with GoogleTest" ON)
 if(MCP_BUILD_TESTS)
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)  # avoid CRT mismatch on Windows
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
   FetchContent_Declare(googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.tar.gz)
 
-  # Offline / no network? Download the googletest source by hand and point CMake
-  # at it — FetchContent then uses that copy instead of fetching:
-  #   cmake --preset debug -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/path/to/googletest
   FetchContent_MakeAvailable(googletest)
 
   enable_testing()
