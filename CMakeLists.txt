@@ -27,6 +27,10 @@ target_link_libraries(mcp PUBLIC nlohmann_json::nlohmann_json)
 add_executable(add_server examples/add_server.cpp)
 target_link_libraries(add_server PRIVATE mcp)
 
+# The layered-core echo server (JSON-RPC over stdio via serve()).
+add_executable(echo_server examples/echo_server.cpp)
+target_link_libraries(echo_server PRIVATE mcp)
+
 file(GLOB SANDBOX_SRCS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/sandbox/rung*.cpp)
 foreach(src ${SANDBOX_SRCS})
   get_filename_component(name ${src} NAME_WE)
@@ -46,4 +50,12 @@ if(MCP_BUILD_TESTS)
 
   enable_testing()
   add_subdirectory(tests)
+
+  # Black-box harness: spawn echo_server, round-trip a request over real stdio.
+  # POSIX only (fork/exec/pipe); skipped on Windows.
+  if(NOT WIN32)
+    add_executable(mcp_probe tools/mcp_probe.cpp)
+    target_link_libraries(mcp_probe PRIVATE mcp)
+    add_test(NAME probe_echo COMMAND mcp_probe $<TARGET_FILE:echo_server>)
+  endif()
 endif()
