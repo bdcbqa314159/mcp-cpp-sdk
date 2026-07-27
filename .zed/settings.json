@@ -1,0 +1,22 @@
+{
+  "lsp": {
+    "clangd": {
+      "arguments": [
+        "--compile-commands-dir=build/debug",
+        "--background-index",
+        "--header-insertion=never"
+      ]
+    }
+  },
+  "languages": {
+    "TOML": { "language_servers": ["!package-version-server", "..."] },
+    "JSON": { "language_servers": ["!package-version-server", "..."] },
+    "JSONC": { "language_servers": ["!package-version-server", "..."] },
+    "CMake": { "language_servers": ["!neocmakelsp", "..."] }
+  },
+  "file_scan_exclusions": [
+    "**/.git",
+    "**/build",
+    "**/sources"
+  ]
+}

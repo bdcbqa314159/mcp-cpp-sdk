@@ -1,0 +1,4 @@
+# clangd reads this regardless of editor. Point it straight at the preset's
+# compile database so headers and sources always resolve the same flags.
+CompileFlags:
+  CompilationDatabase: build/debug

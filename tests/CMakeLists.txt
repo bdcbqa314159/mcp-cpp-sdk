@@ -1,4 +1,4 @@
-add_executable(mcp_tests test_smoke.cpp)
+add_executable(mcp_tests test_smoke.cpp test_json_rpc.cpp test_result.cpp test_transport.cpp test_dispatcher.cpp test_serve.cpp)
 target_link_libraries(mcp_tests PRIVATE mcp GTest::gtest_main)
 
 include(GoogleTest)
