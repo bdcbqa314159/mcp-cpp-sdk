@@ -20,12 +20,10 @@ public:
   Result(T value) : data_(std::move(value)) {}     // success
   Result(Error error) : data_(std::move(error)) {} // failure
 
-  // TODO (task): true when data_ currently holds a T (not an Error).
-  //   Tool: std::holds_alternative<T>(data_).
+  // true when this holds a value (not an error).
   [[nodiscard]] bool ok() const { return std::holds_alternative<T>(data_); }
 
-  // Access the success value. Precondition: ok() == true.
-  // TODO: return the T stored in data_  (std::get<T>(data_)).
+  // Access the success value. Throws std::logic_error if this holds an error.
   T& value() {
     if (this->ok())
       return std::get<T>(data_);
@@ -37,8 +35,7 @@ public:
     throw std::logic_error("Result::value() on an error");
   }
 
-  // Access the error. Precondition: ok() == false.
-  // TODO: return the Error stored in data_  (std::get<Error>(data_)).
+  // Access the error. Throws std::logic_error if this holds a value.
   [[nodiscard]] const Error& error() const {
     if (!this->ok())
       return std::get<Error>(data_);
