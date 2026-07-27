@@ -26,6 +26,18 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
   Address + UB sanitizers via the `MCP_SANITIZE` option.
 - **CI** — GitHub Actions matrix: macOS/Apple Clang, Linux/GCC, Windows/MSVC (build + test).
 
+### Added — M1: JSON-RPC core (layered rebuild)
+- **Value types** — `Id` (variant), `Request`, `Response`, `Error` with nlohmann
+  `to_json`/`from_json`, `std::optional` fields, and `jsonrpc`-version validation.
+- **`Result<T>`** — error-as-value on `std::variant` (a C++20 stand-in for `std::expected`).
+- **`ITransport` / `StdioTransport`** — transport behind an interface; streams injected
+  for testability.
+- **`Dispatcher`** — routes a `Request` by method name to a registered handler, returns
+  a `Response` (or nothing for a notification).
+- **`serve()`** — the loop composing transport + dispatcher into a working JSON-RPC server.
+- **`examples/echo_server`** + **`tools/mcp_probe`** — a real server binary and a POSIX
+  black-box harness that spawns it and round-trips a request over stdio (M1 acceptance).
+
 ### Notes
-- This is the warm-up phase. Next: rebuild in clean layers following the milestone
-  roadmap in `docs/design.md` (M0→M5), toward the typed-tool centerpiece.
+- Warm-up (`sandbox/`, header-only `McpServer`) remains as the working bridge.
+  Next: M2 (lifecycle/Session) → M3 (tools) → M4 (typed-tool centerpiece).
