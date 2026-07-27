@@ -20,8 +20,8 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **Build & tooling** — CMake with `FetchContent` for nlohmann/json; `mcp` INTERFACE
   target; `compile_commands.json` for clangd; `.clang-format`, `.clang-tidy`,
   `.gitignore`.
-- **Tests** — GoogleTest via `FetchContent` with an offline vendored fallback
-  (`third_party/googletest/`); smoke tests run under `ctest`.
+- **Tests** — GoogleTest via `FetchContent`; offline builds supported through
+  `FETCHCONTENT_SOURCE_DIR_GOOGLETEST`. Smoke tests run under `ctest`.
 - **CMake presets** — `debug` / `release` / `asan` (Ninja); the `asan` preset turns on
   Address + UB sanitizers via the `MCP_SANITIZE` option.
 - **CI** — GitHub Actions matrix: macOS/Apple Clang, Linux/GCC, Windows/MSVC (build + test).

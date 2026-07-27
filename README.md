@@ -70,8 +70,13 @@ cd build && ctest --output-on-failure
 ```
 
 GoogleTest is pulled automatically via CMake `FetchContent`. **Offline?** Download the
-GoogleTest repo by hand and drop it at `third_party/googletest/` — CMake prefers a
-vendored copy there over the network fetch, so the build works with no internet.
+GoogleTest source by hand and point CMake at it — FetchContent uses that copy instead
+of fetching:
+
+```sh
+cmake --preset debug -DFETCHCONTENT_SOURCE_DIR_GOOGLETEST=/path/to/googletest
+```
+
 Disable tests entirely with `-DMCP_BUILD_TESTS=OFF`.
 
 ## Layout
