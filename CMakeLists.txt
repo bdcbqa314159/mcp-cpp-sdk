@@ -21,10 +21,12 @@ FetchContent_Declare(nlohmann_json
   URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann_json)
 
-# The SDK is header-only: an interface target that carries the include dir + dep.
-add_library(mcp INTERFACE)
-target_include_directories(mcp INTERFACE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(mcp INTERFACE nlohmann_json::nlohmann_json)
+# The SDK: a compiled library. Sources live in src/, public headers in include/.
+# (Compiling src/json_rpc.cpp also gives clangd a same-named TU to infer the
+# header's flags from, so include/mcp/json_rpc.hpp resolves cleanly in the editor.)
+add_library(mcp STATIC src/json_rpc.cpp)
+target_include_directories(mcp PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(mcp PUBLIC nlohmann_json::nlohmann_json)
 
 # Examples that use the SDK.
 add_executable(add_server examples/add_server.cpp)
