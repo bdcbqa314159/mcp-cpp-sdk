@@ -1,13 +1,11 @@
-// mcp_probe — a black-box harness. Spawns an MCP server binary as a subprocess,
-// sends one JSON-RPC request over stdio (exactly like a real client), reads the
-// response, and checks it. Exit 0 = pass, non-zero = fail.
-//
-// POSIX only (fork/exec/pipe). Windows would need CreateProcess + anonymous pipes;
-// the CMake target is gated to non-Windows for now.
+// mcp_probe — a black-box harness. Spawns an MCP server binary as a subprocess and
+// drives the full lifecycle over stdio (exactly like a real client): initialize ->
+// notifications/initialized -> a real method call. Checks the final response.
+// Exit 0 = pass. POSIX only (fork/exec/pipe); the CMake target is gated to non-Windows.
 #include <nlohmann/json.hpp>
 
-#include <cstring>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include <sys/wait.h>
@@ -36,7 +34,6 @@ int main(int argc, char** argv) {
   }
 
   if (pid == 0) {
-    // Child: rewire the pipes onto stdin/stdout, then become the server.
     dup2(to_child[0], STDIN_FILENO);
     dup2(from_child[1], STDOUT_FILENO);
     close(to_child[0]);
@@ -48,36 +45,49 @@ int main(int argc, char** argv) {
     _exit(127);
   }
 
-  // Parent: close the ends we don't use.
   close(to_child[0]);
   close(from_child[1]);
 
-  // Send one request, then EOF so the server's read loop ends.
-  const std::string request =
+  // Full handshake, then an echo call. `echo` only succeeds if the server
+  // completed the lifecycle (otherwise it would answer -32002).
+  const std::string requests =
+      R"({"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18"}})"
+      "\n"
+      R"({"jsonrpc":"2.0","method":"notifications/initialized"})"
+      "\n"
       R"({"jsonrpc":"2.0","id":1,"method":"echo","params":{"x":42}})"
       "\n";
-  if (write(to_child[1], request.data(), request.size()) < 0) std::perror("write");
+  if (write(to_child[1], requests.data(), requests.size()) < 0) std::perror("write");
   close(to_child[1]);
 
-  // Drain the server's stdout.
   std::string out;
   char buf[512];
-  ssize_t n;
-  while ((n = read(from_child[0], buf, sizeof buf)) > 0) out.append(buf, static_cast<size_t>(n));
+  ssize_t n = 0;
+  while ((n = read(from_child[0], buf, sizeof buf)) > 0)
+    out.append(buf, static_cast<size_t>(n));
   close(from_child[0]);
   waitpid(pid, nullptr, 0);
 
-  // Check the response.
-  try {
-    const json resp = json::parse(out);
-    if (resp.at("id") == 1 && resp.at("result") == json{{"x", 42}}) {
-      std::cout << "PROBE OK: " << out;
-      return 0;
+  // Find the echo response (id == 1) and check its result.
+  std::istringstream lines(out);
+  std::string line;
+  while (std::getline(lines, line)) {
+    if (line.empty()) continue;
+    try {
+      const json resp = json::parse(line);
+      if (resp.contains("id") && resp.at("id") == 1) {
+        if (resp.contains("result") && resp.at("result") == json{{"x", 42}}) {
+          std::cout << "PROBE OK: " << line << "\n";
+          return 0;
+        }
+        std::cerr << "PROBE FAIL (bad echo response): " << line << "\n";
+        return 1;
+      }
+    } catch (const std::exception& e) {
+      std::cerr << "PROBE FAIL (parse): " << e.what() << " on [" << line << "]\n";
+      return 1;
     }
-    std::cerr << "PROBE FAIL (unexpected response): " << out << "\n";
-    return 1;
-  } catch (const std::exception& e) {
-    std::cerr << "PROBE FAIL (" << e.what() << "), raw output: [" << out << "]\n";
-    return 1;
   }
+  std::cerr << "PROBE FAIL (no echo response). Full output:\n" << out << "\n";
+  return 1;
 }
