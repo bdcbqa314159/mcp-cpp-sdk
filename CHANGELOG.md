@@ -38,6 +38,15 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **`examples/echo_server`** + **`tools/mcp_probe`** — a real server binary and a POSIX
   black-box harness that spawns it and round-trips a request over stdio (M1 acceptance).
 
+### Added — M2: lifecycle
+- **`Session`** — a per-connection lifecycle state machine
+  (`Uninitialized → Initializing → Ready`) that produces the `initialize` result
+  (protocolVersion, capabilities, serverInfo) and gates methods by state.
+- **Lifecycle-aware `serve()`** — handles `initialize`, `notifications/initialized`,
+  and `ping` via the `Session`; rejects application methods with `-32002` until Ready.
+- **`echo_server`** now performs the full handshake; **`mcp_probe`** drives
+  initialize → initialized → echo end-to-end (M2 acceptance).
+
 ### Notes
 - Warm-up (`sandbox/`, header-only `McpServer`) remains as the working bridge.
-  Next: M2 (lifecycle/Session) → M3 (tools) → M4 (typed-tool centerpiece).
+  Next: M3 (tools: `tools/list`/`tools/call`) → M4 (typed-tool centerpiece).
