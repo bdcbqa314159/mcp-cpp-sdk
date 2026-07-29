@@ -48,14 +48,14 @@ int main(int argc, char** argv) {
   close(to_child[0]);
   close(from_child[1]);
 
-  // Full handshake, then an echo call. `echo` only succeeds if the server
+  // Full handshake, then a tools/call. The call only succeeds if the server
   // completed the lifecycle (otherwise it would answer -32002).
   const std::string requests =
       R"({"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18"}})"
       "\n"
       R"({"jsonrpc":"2.0","method":"notifications/initialized"})"
       "\n"
-      R"({"jsonrpc":"2.0","id":1,"method":"echo","params":{"x":42}})"
+      R"({"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"echo","arguments":{"msg":"hello"}}})"
       "\n";
   if (write(to_child[1], requests.data(), requests.size()) < 0) std::perror("write");
   close(to_child[1]);
@@ -76,11 +76,12 @@ int main(int argc, char** argv) {
     try {
       const json resp = json::parse(line);
       if (resp.contains("id") && resp.at("id") == 1) {
-        if (resp.contains("result") && resp.at("result") == json{{"x", 42}}) {
+        const json& result = resp.at("result");
+        if (result.at("isError") == false && result.at("content").at(0).at("text") == "hello") {
           std::cout << "PROBE OK: " << line << "\n";
           return 0;
         }
-        std::cerr << "PROBE FAIL (bad echo response): " << line << "\n";
+        std::cerr << "PROBE FAIL (bad tools/call response): " << line << "\n";
         return 1;
       }
     } catch (const std::exception& e) {
