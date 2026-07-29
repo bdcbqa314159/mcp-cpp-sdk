@@ -47,6 +47,17 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **`echo_server`** now performs the full handshake; **`mcp_probe`** drives
   initialize → initialized → echo end-to-end (M2 acceptance).
 
+### Added — M3: tools
+- **`Tool` + `ToolRegistry`** — register tools (name / description / inputSchema /
+  handler); `tools/list` advertises them.
+- **`ToolError` + a safe call boundary** — `ToolRegistry::call` always returns a
+  `ToolResult`: an unknown tool, a thrown `ToolError`, or any exception becomes an
+  `isError` result (never a crash).
+- **Full MCP serve loop** — `serve(transport, session, tools)` adds `tools/list` and
+  `tools/call` on top of the M2 lifecycle, gated until Ready.
+- **`echo_server`** now exposes an `echo` *tool*; **`mcp_probe`** drives
+  initialize → initialized → tools/call end-to-end (M3 acceptance).
+
 ### Notes
-- Warm-up (`sandbox/`, header-only `McpServer`) remains as the working bridge.
-  Next: M3 (tools: `tools/list`/`tools/call`) → M4 (typed-tool centerpiece).
+- The layered core is now at feature-parity with the warm-up `McpServer`, properly
+  layered. Next: M4 — the typed-tool centerpiece (one struct → schema + parsing).
