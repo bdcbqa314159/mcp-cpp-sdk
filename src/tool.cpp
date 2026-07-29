@@ -13,6 +13,12 @@ ToolResult text(std::string s) {
   return result;
 }
 
+// ToolResult -> tools/call result JSON (provided).
+void to_json(json& j, const ToolResult& r) {
+  j["content"] = r.content;
+  j["isError"] = r.isError;
+}
+
 // Register (or replace) a tool, keyed by its own name. (Read the name into a local
 // before moving `tool` — the key/value evaluation order isn't guaranteed.)
 void ToolRegistry::add(Tool tool) {

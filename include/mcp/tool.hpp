@@ -26,6 +26,9 @@ public:
 // Build a single text-block result: {content:[{type:"text",text:s}], isError:false}.
 ToolResult text(std::string s);
 
+// ToolResult -> the tools/call result JSON: {"content": [...], "isError": bool}.
+void to_json(json& j, const ToolResult& r);
+
 // A raw tool handler: JSON arguments in, a ToolResult out. (Typed handlers arrive
 // in M4; this raw form is the escape hatch.)
 using ToolHandler = std::function<ToolResult(const json& arguments)>;
