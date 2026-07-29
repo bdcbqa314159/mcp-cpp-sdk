@@ -48,3 +48,30 @@ TEST(ToolRegistry, ListAdvertisesRegisteredTools) {
   }
   EXPECT_TRUE(found_add);
 }
+
+TEST(ToolRegistry, CallRunsTheHandler) {
+  ToolRegistry reg;
+  reg.add(Tool{"greet", "", json::object(), [](const json& a) -> ToolResult {
+                 return mcp::text("hi " + a.at("name").get<std::string>());
+               }});
+
+  ToolResult r = reg.call("greet", json{{"name", "Ada"}});
+  EXPECT_FALSE(r.isError);
+  EXPECT_EQ(r.content.at(0).at("text"), "hi Ada");
+}
+
+TEST(ToolRegistry, CallUnknownToolIsError) {
+  ToolRegistry reg;
+  ToolResult r = reg.call("nope", json::object());
+  EXPECT_TRUE(r.isError);
+}
+
+TEST(ToolRegistry, CallCatchesToolError) {
+  ToolRegistry reg;
+  reg.add(Tool{"boom", "", json::object(),
+               [](const json&) -> ToolResult { throw mcp::ToolError("kaboom"); }});
+
+  ToolResult r = reg.call("boom", json::object());
+  EXPECT_TRUE(r.isError);
+  EXPECT_EQ(r.content.at(0).at("text"), "kaboom");
+}

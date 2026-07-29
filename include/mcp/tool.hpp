@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <mcp/json_rpc.hpp>
 
@@ -12,6 +13,14 @@ namespace mcp {
 struct ToolResult {
   json content;         // a JSON array of content blocks
   bool isError = false;
+};
+
+// Tool authors throw this to signal a failure with a message. The registry catches
+// it at the call boundary and turns it into an isError ToolResult — the ergonomic
+// exception at the tool edge, converted to a value the moment it crosses back in.
+class ToolError : public std::runtime_error {
+public:
+  explicit ToolError(const std::string& message) : std::runtime_error(message) {}
 };
 
 // Build a single text-block result: {content:[{type:"text",text:s}], isError:false}.
@@ -38,6 +47,10 @@ public:
 
   // The tools/list result: {"tools": [ {name, description, inputSchema}, ... ]}.
   json list() const;
+
+  // Run a tool by name. Always returns a ToolResult (never throws out): an unknown
+  // tool or a thrown ToolError/exception becomes an isError result.
+  ToolResult call(const std::string& name, const json& arguments) const;
 
 private:
   std::map<std::string, Tool> tools_;

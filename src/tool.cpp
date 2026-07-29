@@ -1,3 +1,4 @@
+#include <exception>
 #include <mcp/tool.hpp>
 
 #include <utility>
@@ -21,6 +22,31 @@ void ToolRegistry::add(Tool tool) {
 
 bool ToolRegistry::contains(const std::string& name) const {
   return tools_.contains(name);
+}
+
+// Run the named tool and always return a ToolResult: an unknown tool, a thrown
+// ToolError, or any other exception all become an isError result — the tool
+// boundary where exceptions are caught and converted back to values.
+ToolResult ToolRegistry::call(const std::string& name, const json& arguments) const {
+  auto it = tools_.find(name);
+
+  if (it == tools_.end()) {
+    ToolResult result = text(name);
+    result.isError = true;
+    return result;
+  }
+  try {
+    return it->second.handler(arguments);
+  } catch (const ToolError& e) {
+    ToolResult result = text(e.what());
+    result.isError = true;
+    return result;
+
+  } catch (const std::exception& e) {
+    ToolResult result = text("tool failed " + std::string(e.what()));
+    result.isError = true;
+    return result;
+  }
 }
 
 // The tools/list result: {"tools": [ {name, description, inputSchema}, ... ]}.
