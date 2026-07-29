@@ -58,6 +58,17 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **`echo_server`** now exposes an `echo` *tool*; **`mcp_probe`** drives
   initialize → initialized → tools/call end-to-end (M3 acceptance).
 
+### Added — M4: typed-tool layer (the centerpiece)
+- **`field` / `fields`** — describe an args struct's fields once, via pointer-to-member.
+- **`schema_for<Args>()`** — compile-time JSON Schema generation (`if constexpr` maps each
+  field's C++ type to its schema type).
+- **`parse_args<Args>()`** — parse JSON into a typed struct by writing through member
+  pointers; a missing required field throws `ToolError`.
+- **`add_typed_tool<Args>()`** — one call registers a tool whose inputSchema *and* argument
+  parsing both derive from `Args::describe()`, so they cannot drift.
+- **`echo_server`** migrated to the typed API: define a struct, write a handler that takes
+  it — schema and validation are automatic.
+
 ### Notes
-- The layered core is now at feature-parity with the warm-up `McpServer`, properly
-  layered. Next: M4 — the typed-tool centerpiece (one struct → schema + parsing).
+- The SDK's signature feature is in. Next: M5 — polish (retire the warm-up `McpServer`,
+  a `Server` facade for `server.tool<Args>(...)`, logging, docs, a second real tool).
