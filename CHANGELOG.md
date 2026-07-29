@@ -69,6 +69,10 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **`echo_server`** migrated to the typed API: define a struct, write a handler that takes
   it — schema and validation are automatic.
 
-### Notes
-- The SDK's signature feature is in. Next: M5 — polish (retire the warm-up `McpServer`,
-  a `Server` facade for `server.tool<Args>(...)`, logging, docs, a second real tool).
+### Added — M5: polish
+- **`Server` facade** — the public API: `server.tool<Args>(...)` + `server.run()`, owning the
+  Session and ToolRegistry. Retires the warm-up header-only `McpServer`.
+- **`Logger`** — a small leveled stderr logger (Debug/Info/Warn/Error) with an injectable
+  stream; logs never touch the stdout protocol channel.
+- **`add_server`** rewritten on the facade with two typed tools (`add`, `multiply`).
+- **Docs** — README quickstart on the typed API; `docs/m4-typed-tools.md` reading guide.
