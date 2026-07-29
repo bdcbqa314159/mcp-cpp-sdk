@@ -19,7 +19,7 @@ FetchContent_Declare(nlohmann_json
   URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz)
 FetchContent_MakeAvailable(nlohmann_json)
 
-add_library(mcp STATIC src/json_rpc.cpp src/result.cpp src/transport.cpp src/dispatcher.cpp src/serve.cpp src/session.cpp)
+add_library(mcp STATIC src/json_rpc.cpp src/result.cpp src/transport.cpp src/dispatcher.cpp src/serve.cpp src/session.cpp src/tool.cpp)
 target_include_directories(mcp PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(mcp PUBLIC nlohmann_json::nlohmann_json)
 
