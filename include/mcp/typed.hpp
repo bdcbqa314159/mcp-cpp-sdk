@@ -118,4 +118,29 @@ template <typename Args> Args parse_args(const json& arguments) {
   return out;
 }
 
+// ---- Tying it together ------------------------------------------------------
+
+// Register a TYPED tool: the schema and the parsing both come from Args::describe().
+// The caller writes a handler taking a parsed `const Args&`; this wraps it in a raw
+// ToolHandler that parse_args()es the JSON first, so schema and parsing can't drift.
+//
+// TODO (M4 task 4): build and register the tool.
+//   registry.add(Tool{
+//       std::move(name),
+//       std::move(description),
+//       schema_for<Args>(),                       // inputSchema from the struct
+//       [handler = std::move(handler)](const json& arguments) -> ToolResult {
+//         Args a = parse_args<Args>(arguments);   // throws ToolError on bad input
+//         return handler(a);                      // call the typed handler
+//       }});
+template <typename Args, typename Handler>
+void add_typed_tool(ToolRegistry& registry, std::string name, std::string description,
+                    Handler handler) {
+  registry.add(Tool{std::move(name), std::move(description), schema_for<Args>(),
+                    [handler = std::move(handler)](const json& arguments) -> ToolResult {
+                      Args a = parse_args<Args>(arguments);
+                      return handler(a);
+                    }});
+}
+
 } // namespace mcp

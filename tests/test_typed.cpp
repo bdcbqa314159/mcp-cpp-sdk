@@ -85,3 +85,39 @@ TEST(ParseArgs, MissingRequiredThrowsToolError) {
   json args = json::object();  // "msg" is required and absent
   EXPECT_THROW(mcp::parse_args<EchoArgs>(args), mcp::ToolError);
 }
+
+using mcp::ToolRegistry;
+using mcp::ToolResult;
+
+TEST(TypedTool, RegistersWithGeneratedSchema) {
+  ToolRegistry reg;
+  mcp::add_typed_tool<EchoArgs>(reg, "echo", "echoes a message",
+                                [](const EchoArgs& a) { return mcp::text(a.msg); });
+
+  ASSERT_TRUE(reg.contains("echo"));
+  json l = reg.list();
+  // The inputSchema was generated from EchoArgs::describe(), not hand-written.
+  EXPECT_EQ(l.at("tools").at(0).at("inputSchema").at("properties").at("msg").at("type"),
+            "string");
+}
+
+TEST(TypedTool, ParsesArgumentsThenCallsHandler) {
+  ToolRegistry reg;
+  mcp::add_typed_tool<EchoArgs>(reg, "echo", "echoes", [](const EchoArgs& a) {
+    return mcp::text(a.shout ? "SHOUT:" + a.msg : a.msg);
+  });
+
+  ToolResult r = reg.call("echo", json{{"msg", "hi"}, {"shout", true}});
+  EXPECT_FALSE(r.isError);
+  EXPECT_EQ(r.content.at(0).at("text"), "SHOUT:hi");
+}
+
+TEST(TypedTool, MissingRequiredArgSurfacesAsIsError) {
+  ToolRegistry reg;
+  mcp::add_typed_tool<EchoArgs>(reg, "echo", "echoes",
+                                [](const EchoArgs& a) { return mcp::text(a.msg); });
+
+  // parse_args throws ToolError -> ToolRegistry::call catches it -> isError result.
+  ToolResult r = reg.call("echo", json::object());
+  EXPECT_TRUE(r.isError);
+}
