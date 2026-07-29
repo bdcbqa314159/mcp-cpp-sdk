@@ -64,3 +64,24 @@ TEST(Schema, RequiredReflectsFieldFlags) {
   EXPECT_EQ(std::find(req.begin(), req.end(), "shout"), req.end());   // optional
   EXPECT_EQ(std::find(req.begin(), req.end(), "count"), req.end());   // optional
 }
+
+TEST(ParseArgs, PopulatesEveryFieldFromJson) {
+  json args = {{"msg", "hello"}, {"shout", true}, {"count", 3}};
+  EchoArgs a = mcp::parse_args<EchoArgs>(args);
+  EXPECT_EQ(a.msg, "hello");
+  EXPECT_TRUE(a.shout);
+  EXPECT_EQ(a.count, 3);
+}
+
+TEST(ParseArgs, OptionalMissingKeepsDefaults) {
+  json args = {{"msg", "hi"}};  // shout, count omitted (both optional)
+  EchoArgs a = mcp::parse_args<EchoArgs>(args);
+  EXPECT_EQ(a.msg, "hi");
+  EXPECT_FALSE(a.shout);  // struct default
+  EXPECT_EQ(a.count, 1);  // struct default
+}
+
+TEST(ParseArgs, MissingRequiredThrowsToolError) {
+  json args = json::object();  // "msg" is required and absent
+  EXPECT_THROW(mcp::parse_args<EchoArgs>(args), mcp::ToolError);
+}

@@ -1,5 +1,6 @@
 #pragma once
 #include <mcp/json_rpc.hpp>
+#include <mcp/tool.hpp>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -34,36 +35,22 @@ template <typename Struct, typename T> struct Field {
 template <typename Struct, typename T>
 constexpr Field<Struct, T> field(T Struct::* member, std::string_view name,
                                  std::string_view description, bool required = true) {
-  // TODO (M4 task 1): return a Field<Struct, T> holding these four values.
   return {member, name, description, required};
 }
 
 // Bundle field descriptors together — this is what a struct's describe() returns.
 // A std::tuple can hold different Field<...> types (each field has its own T).
 template <typename... Fs> constexpr auto fields(Fs... fs) {
-  // TODO (M4 task 1): pack the descriptors into a std::tuple (std::make_tuple).
   return std::make_tuple(fs...);
 }
 
 // ---- Schema generation ------------------------------------------------------
 
 // Map a C++ field type to its JSON Schema "type" string, chosen at COMPILE TIME.
-//
-// TODO (M4 task 2): fill this in with an `if constexpr` chain:
-//     if constexpr (std::is_same_v<T, bool>)          return "boolean";
-//     else if constexpr (std::is_integral_v<T>)       return "integer";
-//     else if constexpr (std::is_floating_point_v<T>) return "number";
-//     else if constexpr (std::is_same_v<T, std::string>) return "string";
-//     else                                            return "object";
-//
-// GOTCHA — order matters: `bool` satisfies std::is_integral_v too, so the bool
-// check MUST come first, or every bool would be typed "integer".
-//
-// Why `if constexpr` and not a normal `if`? Each branch mentions a different type;
-// a runtime `if` would require every branch to compile for every T. `if constexpr`
-// discards the untaken branches at compile time, so only the matching one is kept.
+// Order matters: `bool` satisfies std::is_integral_v too, so it must be checked
+// first. `if constexpr` keeps only the matching branch per T (the untaken branches
+// are discarded, not just skipped — so they may hold type-specific code).
 template <typename T> constexpr const char* json_type_name() {
-  // return "unknown";  // TODO: replace with the if constexpr chain above
   if constexpr (std::is_same_v<T, bool>)
     return "boolean";
   else if constexpr (std::is_integral_v<T>)
@@ -103,6 +90,32 @@ template <typename Args> json schema_for() {
   schema["properties"] = properties;
   schema["required"] = required;
   return schema;
+}
+
+// ---- Argument parsing -------------------------------------------------------
+
+// Parse a JSON `arguments` object into a fresh Args struct, using the describe()
+// field list. (Provided — the tuple-walk; you supply the per-field body.)
+template <typename Args> Args parse_args(const json& arguments) {
+  Args out{}; // start from the struct's defaults
+
+  std::apply(
+      [&](auto... field) {
+        (([&] {
+           using T = typename decltype(field)::value_type;
+           const std::string key(field.name);
+           // Present -> write through the member pointer as the field's type T.
+           // Missing + required -> ToolError. Missing + optional -> keep default.
+           if (arguments.contains(key))
+             out.*(field.member) = arguments.at(key).get<T>();
+           else if (field.required)
+             throw ToolError("missing required argument: " + key);
+         }()),
+         ...);
+      },
+      Args::describe());
+
+  return out;
 }
 
 } // namespace mcp
