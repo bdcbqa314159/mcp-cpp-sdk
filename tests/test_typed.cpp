@@ -1,12 +1,26 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <string>
 #include <tuple>
 #include <mcp/typed.hpp>
+
+using mcp::json;
 
 namespace {
 struct Sample {
   std::string name;
   int age = 0;
+};
+
+struct EchoArgs {
+  std::string msg;
+  bool shout = false;
+  int count = 1;
+  static constexpr auto describe() {
+    return mcp::fields(mcp::field(&EchoArgs::msg, "msg", "the message"),
+                       mcp::field(&EchoArgs::shout, "shout", "uppercase it", false),
+                       mcp::field(&EchoArgs::count, "count", "repeat count", false));
+  }
 };
 }  // namespace
 
@@ -33,4 +47,20 @@ TEST(Fields, BundlesDescriptorsIntoATuple) {
                         mcp::field(&Sample::age, "age", "a"));
   // Two descriptors in, a 2-element tuple out (each keeps its own Field<...> type).
   EXPECT_EQ(std::tuple_size_v<decltype(fs)>, 2u);
+}
+
+TEST(Schema, MapsFieldTypesToJsonSchemaTypes) {
+  json s = mcp::schema_for<EchoArgs>();
+  EXPECT_EQ(s.at("type"), "object");
+  EXPECT_EQ(s.at("properties").at("msg").at("type"), "string");
+  EXPECT_EQ(s.at("properties").at("shout").at("type"), "boolean");  // NOT "integer"
+  EXPECT_EQ(s.at("properties").at("count").at("type"), "integer");
+}
+
+TEST(Schema, RequiredReflectsFieldFlags) {
+  json s = mcp::schema_for<EchoArgs>();
+  const json& req = s.at("required");
+  EXPECT_NE(std::find(req.begin(), req.end(), "msg"), req.end());     // required
+  EXPECT_EQ(std::find(req.begin(), req.end(), "shout"), req.end());   // optional
+  EXPECT_EQ(std::find(req.begin(), req.end(), "count"), req.end());   // optional
 }
