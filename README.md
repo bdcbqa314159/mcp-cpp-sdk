@@ -7,10 +7,41 @@ Full plan, architecture, and milestone roadmap: [`docs/design.md`](docs/design.m
 
 ## Status
 
-Warm-up phase: building a minimal MCP server by hand (`sandbox/`) to internalise the
-protocol, before rebuilding it properly in layers (milestones M0–M5). Current sandbox
-covers the full stdio + tools flow: JSON-RPC framing, `initialize`, notifications,
-errors, `tools/list`, `tools/call`.
+A working, layered MCP server SDK (milestones M0–M5). It speaks MCP `2025-06-18` over
+stdio: a JSON-RPC core, the lifecycle handshake, `tools/list` / `tools/call`, and a
+**typed-tool layer** where one struct describes a tool's arguments and the SDK derives
+*both* the JSON schema and the argument parsing from it. The `sandbox/` rungs remain as
+the by-hand learning path the layered code was built from.
+
+## Quickstart
+
+Describe a tool's arguments once; the schema and the parsing both come from it:
+
+```cpp
+#include <string>
+#include <mcp/server.hpp>
+
+struct AddArgs {
+  int a = 0;
+  int b = 0;
+  static constexpr auto describe() {
+    return mcp::fields(mcp::field(&AddArgs::a, "a", "first addend"),
+                       mcp::field(&AddArgs::b, "b", "second addend"));
+  }
+};
+
+int main() {
+  mcp::Server server{"my-server", "1.0"};
+  server.tool<AddArgs>("add", "Add two integers", [](const AddArgs& x) {
+    return mcp::text(std::to_string(x.a + x.b));
+  });
+  server.run();  // MCP over stdio; logs to stderr, JSON-RPC on stdout
+}
+```
+
+`tools/list` advertises the generated schema; `tools/call` hands your handler a parsed,
+validated `AddArgs`. A missing required argument comes back as an `isError` result, not a
+crash.
 
 ## Build
 
@@ -34,14 +65,15 @@ developing to catch lifetime/UB bugs early.
 
 ## Run the example server
 
-It speaks MCP over stdio (newline-delimited JSON-RPC). Drive it by hand:
+`examples/add_server` exposes `add` and `multiply`. It speaks MCP over stdio, so a client
+must complete the handshake before calling tools. Drive it by hand:
 
 ```sh
 printf '%s\n%s\n%s\n' \
- '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{"protocolVersion":"2025-06-18"}}' \
- '{"jsonrpc":"2.0","id":1,"method":"tools/list"}' \
- '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"add","arguments":{"a":2,"b":3}}}' \
- | ./build/add_server
+ '{"jsonrpc":"2.0","id":0,"method":"initialize","params":{}}' \
+ '{"jsonrpc":"2.0","method":"notifications/initialized"}' \
+ '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"add","arguments":{"a":2,"b":3}}}' \
+ | ./build/debug/add_server
 ```
 
 ## Connect to Claude Desktop
@@ -53,7 +85,7 @@ Add the built binary to Claude Desktop's config
 {
   "mcpServers": {
     "mcp-cpp-sdk": {
-      "command": "/absolute/path/to/mcp-cpp-sdk/build/add_server"
+      "command": "/absolute/path/to/mcp-cpp-sdk/build/debug/add_server"
     }
   }
 }
@@ -83,7 +115,10 @@ Disable tests entirely with `-DMCP_BUILD_TESTS=OFF`.
 
 | Path | What |
 |------|------|
+| `include/mcp/` | The SDK (public headers): `server`, `session`, `tool`, `typed`, `serve`, `transport`, `json_rpc`, `result`, `logger` |
+| `src/` | Non-template implementations |
+| `examples/` | Servers written *against* the SDK (`add_server`, `echo_server`) |
+| `tests/` | GoogleTest unit tests + `tools/mcp_probe` black-box harness |
 | `sandbox/rung*.cpp` | Learning steps — the protocol built by hand, one concept at a time |
-| `include/mcp/` | The SDK (public headers) |
-| `examples/` | Servers written *against* the SDK |
 | `docs/design.md` | The design & milestone plan |
+| `docs/m1-json-rpc-core.md`, `docs/m4-typed-tools.md` | C++ reading guides for the core and the typed layer |
