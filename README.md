@@ -43,6 +43,36 @@ int main() {
 validated `AddArgs`. A missing required argument comes back as an `isError` result, not a
 crash.
 
+## Use it in your project
+
+Link the **`mcp::mcp`** target. Two ways to get the SDK:
+
+**FetchContent / add_subdirectory** — zero install; fetches nlohmann/json for you, and
+skips the SDK's own examples/tests/sandbox when consumed this way:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(mcp
+  GIT_REPOSITORY https://github.com/bdcbqa314159/mcp-cpp-sdk.git
+  GIT_TAG main)
+FetchContent_MakeAvailable(mcp)
+
+add_executable(my_server main.cpp)
+target_link_libraries(my_server PRIVATE mcp::mcp)
+```
+
+**Installed package** — after `cmake --install` (requires `nlohmann_json` discoverable via
+`find_package`):
+
+```cmake
+find_package(mcp 0.1 REQUIRED)
+target_link_libraries(my_server PRIVATE mcp::mcp)
+```
+
+Build options (each defaults ON only when the SDK is the **top-level** project, so
+consumers don't build them): `MCP_BUILD_EXAMPLES`, `MCP_BUILD_SANDBOX`, `MCP_BUILD_TESTS`,
+plus `MCP_SANITIZE`.
+
 ## Build
 
 With CMake presets (recommended — needs CMake ≥3.25 and Ninja):

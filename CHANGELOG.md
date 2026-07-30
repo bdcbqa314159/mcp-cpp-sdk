@@ -69,6 +69,14 @@ uses [Semantic Versioning](https://semver.org/) once it reaches a first release.
 - **`echo_server`** migrated to the typed API: define a struct, write a handler that takes
   it — schema and validation are automatic.
 
+### Added — packaging
+- **`mcp::mcp` alias target**, and `install()` + a CMake package config so consumers can
+  `find_package(mcp)` (when `nlohmann_json` is discoverable via find_package).
+- **Top-level build guards** — `MCP_BUILD_EXAMPLES` / `MCP_BUILD_SANDBOX` / `MCP_BUILD_TESTS`
+  default ON only when the SDK is the top-level project, so a FetchContent/add_subdirectory
+  consumer builds just the library.
+- README: how to consume the SDK (FetchContent and installed-package).
+
 ### Added — M5: polish
 - **`Server` facade** — the public API: `server.tool<Args>(...)` + `server.run()`, owning the
   Session and ToolRegistry. Retires the warm-up header-only `McpServer`.
