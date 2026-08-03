@@ -4,22 +4,12 @@ Full plan in `docs/design.md`. This file is the short version Claude Code reads 
 
 ## The point of this project
 
-Build a real, spec-correct MCP C++ SDK **and** learn modern C++ deeply by writing every
-load-bearing line ourselves. Bernardo writes the code; Claude teaches, scaffolds, reviews,
-unblocks. **Never pre-empt the code that carries a learning objective.**
+A real, spec-correct MCP C++ SDK. It also doubles as a deep modern-C++ learning project for the
+author, who writes the load-bearing code by hand — which is why the history is deliberately
+incremental. The conventions below are what any contributor (or agent) needs.
 
-## Working mode — learn-by-building (priority)
-Bernardo writes the load-bearing code (the parts that carry a learning objective); Claude
-teaches, scaffolds, reviews, and unblocks — **never** pre-empts code that teaches him something.
-- **Task loop:** Claude sets one bounded task with a red→green test as the done-signal; Bernardo
-  attempts it; Claude reviews as a mentor (correctness → idiom → safety → style), flagging
-  without fixing unless asked to "show me"; then commit and move to the next.
-- **Hint gradually:** pointer → concept (small example, not his code) → "show me" only if he's
-  stuck and asks. Ground every hint in real build/test output, not guesses.
-- **Claude owns the plumbing:** build files, CI, test rigs, tooling/editor config, deps, scaffolding.
-- Slower throughput is intended — it's how he builds fluency.
-
-Full methodology: @~/.claude/ways-of-working.md
+> Maintainer's personal working mode ("learn-by-building") lives in the git-ignored
+> `CLAUDE.local.md` — not needed to build or contribute; ignore it if you're not the author.
 
 ## Conventions
 

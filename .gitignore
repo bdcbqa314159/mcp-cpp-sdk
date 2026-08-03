@@ -32,3 +32,6 @@ sandbox/rung[0-9]
 
 # Some content
 **/sources/
+
+# Personal, per-project Claude Code overrides (learn-by-building mode)
+CLAUDE.local.md
