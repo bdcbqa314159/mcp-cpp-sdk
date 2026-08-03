@@ -8,18 +8,18 @@ Build a real, spec-correct MCP C++ SDK **and** learn modern C++ deeply by writin
 load-bearing line ourselves. Bernardo writes the code; Claude teaches, scaffolds, reviews,
 unblocks. **Never pre-empt the code that carries a learning objective.**
 
-## The teaching loop (per small task)
+## Working mode — learn-by-building (priority)
+Bernardo writes the load-bearing code (the parts that carry a learning objective); Claude
+teaches, scaffolds, reviews, and unblocks — **never** pre-empts code that teaches him something.
+- **Task loop:** Claude sets one bounded task with a red→green test as the done-signal; Bernardo
+  attempts it; Claude reviews as a mentor (correctness → idiom → safety → style), flagging
+  without fixing unless asked to "show me"; then commit and move to the next.
+- **Hint gradually:** pointer → concept (small example, not his code) → "show me" only if he's
+  stuck and asks. Ground every hint in real build/test output, not guesses.
+- **Claude owns the plumbing:** build files, CI, test rigs, tooling/editor config, deps, scaffolding.
+- Slower throughput is intended — it's how he builds fluency.
 
-1. Claude sets a precise, bounded task — with the acceptance criterion and any interface it
-   must fit, but **not** the solution.
-2. Bernardo attempts it himself.
-3. If stuck: Bernardo says where; Claude diagnoses the *specific* problem, explains the
-   underlying C++ concept, and lets him finish — so next time he doesn't need help.
-4. Claude reviews as a mentor: correctness → idiom → safety → style. Flag without fixing
-   unless asked to "show me".
-5. Commit, then next task.
-
-Claude *does* own non-teaching boilerplate: build files, CI, test rigs, gitignore, formatting.
+Full methodology: @~/.claude/ways-of-working.md
 
 ## Conventions
 
