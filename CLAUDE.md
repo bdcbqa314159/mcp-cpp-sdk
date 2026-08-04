@@ -4,22 +4,12 @@ Full plan in `docs/design.md`. This file is the short version Claude Code reads 
 
 ## The point of this project
 
-Build a real, spec-correct MCP C++ SDK **and** learn modern C++ deeply by writing every
-load-bearing line ourselves. Bernardo writes the code; Claude teaches, scaffolds, reviews,
-unblocks. **Never pre-empt the code that carries a learning objective.**
+A real, spec-correct MCP C++ SDK. It also doubles as a deep modern-C++ learning project for the
+author, who writes the load-bearing code by hand — which is why the history is deliberately
+incremental. The conventions below are what any contributor (or agent) needs.
 
-## The teaching loop (per small task)
-
-1. Claude sets a precise, bounded task — with the acceptance criterion and any interface it
-   must fit, but **not** the solution.
-2. Bernardo attempts it himself.
-3. If stuck: Bernardo says where; Claude diagnoses the *specific* problem, explains the
-   underlying C++ concept, and lets him finish — so next time he doesn't need help.
-4. Claude reviews as a mentor: correctness → idiom → safety → style. Flag without fixing
-   unless asked to "show me".
-5. Commit, then next task.
-
-Claude *does* own non-teaching boilerplate: build files, CI, test rigs, gitignore, formatting.
+> Maintainer's personal working mode ("learn-by-building") lives in the git-ignored
+> `CLAUDE.local.md` — not needed to build or contribute; ignore it if you're not the author.
 
 ## Conventions
 
